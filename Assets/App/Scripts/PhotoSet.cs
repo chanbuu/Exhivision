@@ -6,21 +6,22 @@ using Crosstales.FB;
 
 public class PhotoSet : MonoBehaviour {
 	private string filePath;
-	private SpriteRenderer photoRenderer;
+	[SerializeField]
+	private MeshRenderer photoRenderer;
 
 	private string localFileName; // 拡張子込み
 
 	private void Start(){
-		this.photoRenderer = this.gameObject.GetComponentInChildren<SpriteRenderer>();
+		// this.photoRenderer = this.gameObject.GetComponentInChildren<SpriteRenderer>();
 		this.Initialize();
 	}
 
 	private void Initialize(){
 		if(this.photoRenderer == null) return;
-		this.localFileName = this.photoRenderer.name + ".png";
-		Debug.Log("try download: "+Application.persistentDataPath+this.localFileName);
-		if(File.Exists(Application.persistentDataPath+this.localFileName)){
-			this.filePath = Application.persistentDataPath+localFileName;
+		this.localFileName = this.photoRenderer.name; //+ ".png";
+		Debug.Log("try download: "+Application.persistentDataPath+"/"+this.localFileName);
+		if(File.Exists(Application.persistentDataPath+"/"+this.localFileName)){
+			this.filePath = Application.persistentDataPath+"/"+localFileName;
 			setPhoto();
 		}
 	
@@ -44,6 +45,7 @@ public class PhotoSet : MonoBehaviour {
 		yield return new WaitForEndOfFrame();
 		this.filePath = FileBrowser.OpenSingleFile("Open Files", "", "");
 		yield return new WaitForFixedUpdate();
+		Debug.Log(this.filePath);
 		this.saveFile(this.filePath);
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
@@ -58,13 +60,16 @@ public class PhotoSet : MonoBehaviour {
 		BinaryReader bin = new BinaryReader(new FileStream(this.filePath,FileMode.Open,FileAccess.Read));
 		byte[] by = bin.ReadBytes((int)bin.BaseStream.Length);
 		bin.Close();
-		int pos = 16, width = 0, height = 0;
-		for (int i = 0; i < 4; i++) width  = width  * 256 + by[pos++];
-		for (int i = 0; i < 4; i++) height = height * 256 + by[pos++];
-		Texture2D texture = new Texture2D(width, height);
+		// int pos = 16, width = 0, height = 0;
+		// for (int i = 0; i < 4; i++) width  = width  * 256 + by[pos++];
+		// for (int i = 0; i < 4; i++) height = height * 256 + by[pos++];
+		// Texture2D texture = new Texture2D(width, height);
+		Texture2D texture = new Texture2D(1,1);
 		texture.LoadImage(by);
-		
-		this.photoRenderer.sprite = Sprite.Create(texture,new Rect(0,0,width,height),Vector2.zero);
+
+	    Material mat = this.photoRenderer.material;
+		mat.mainTexture = texture;
+		this.photoRenderer.material = mat;
 
 	}
 
@@ -72,7 +77,7 @@ public class PhotoSet : MonoBehaviour {
 	private void saveFile(string _path){
 		// pathを指定の場所に.
 		if(File.Exists(_path)){
-			File.Copy(_path,Application.persistentDataPath+this.localFileName,true);
+			File.Copy(_path,Application.persistentDataPath+"/"+this.localFileName,true);
 		} 
 	}
 }
